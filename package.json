@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "EHS Screenshot & Discord Notification Bot",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "start": "ts-node scripts/bot.ts && ts-node scripts/send-to-discord.ts && ts-node scripts/send-email.ts"
   },
