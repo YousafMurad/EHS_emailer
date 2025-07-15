@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "ts-node scripts/bot.ts && ts-node scripts/send-to-discord.ts && ts-node scripts/send-email.ts"
+    "start": "ts-node-esm scripts/bot.ts && ts-node-esm scripts/send-to-discord.ts && ts-node-esm scripts/send-email.ts"
   },
   "keywords": [],
   "author": "Yousaf",
