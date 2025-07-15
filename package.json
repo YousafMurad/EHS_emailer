@@ -1,0 +1,25 @@
+{
+  "name": "ehs-automation",
+  "version": "1.0.0",
+  "description": "EHS Screenshot & Discord Notification Bot",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "ts-node scripts/bot.ts && ts-node scripts/send-to-discord.ts && ts-node scripts/send-email.ts"
+  },
+  "keywords": [],
+  "author": "Yousaf",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.0.14",
+    "form-data": "^4.0.3",
+    "node-fetch": "^2.6.9",
+    "playwright": "^1.54.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.5"
+  }
+}
