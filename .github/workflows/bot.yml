@@ -2,7 +2,7 @@ name: 📸 EHS Daily Report Automation
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # Runs at 7 AM Pakistan Time (UTC+5)
+    - cron: '0 13 * * *'  # Runs at 7 AM Pakistan Time (UTC+5)
   workflow_dispatch:
 
 permissions:
@@ -42,9 +42,3 @@ jobs:
           git commit -m "📸 Add screenshot for $(date +'%Y-%m-%d %H:%M:%S')" || echo "⚠️ Nothing to commit"
           git push
           
-      - name: 📧 Send Screenshot by Email
-        run: npx ts-node scripts/send-email.ts
-        env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
