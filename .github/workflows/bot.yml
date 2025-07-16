@@ -1,16 +1,16 @@
-name: EHS Automation Workflow
+name: 📸 EHS Daily Report Automation
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 7 AM Pakistan Time
-  workflow_dispatch:
+    - cron: '0 2 * * *'  # Runs at 7 AM PKT (UTC+5)
+  workflow_dispatch:      # Allows manual run from GitHub
 
 jobs:
-  run:
+  ehs-daily-screenshot:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repo
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v3
 
       - name: 🧰 Setup Node.js
@@ -25,17 +25,17 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: 🧪 Run Screenshot Test
-        run: npx playwright test scripts/test-screenshot.spec.ts
+        run: npx playwright test
         env:
           LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 
-      - name: 📤 Send to Discord
+      - name: 📤 Send Screenshot to Discord
         run: npx ts-node scripts/send-to-discord.ts
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-      - name: 📧 Send Email
+      - name: 📧 Send Screenshot by Email
         run: npx ts-node scripts/send-email.ts
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
