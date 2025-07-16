@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 const today = new Date().toISOString().split('T')[0];
-const screenshotPath = path.resolve(`screenshot-${today}.png`);
+const screenshotPath = fs.readFileSync('screenshot_path.txt', 'utf-8');
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
