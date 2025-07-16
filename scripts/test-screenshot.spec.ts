@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
+
 (async () => {
   const browser = await chromium.launch();
   const context = await browser.newContext();
