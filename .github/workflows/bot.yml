@@ -33,11 +33,6 @@ jobs:
           LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 
-      - name: 📤 Send Screenshot to Discord
-        run: npx ts-node scripts/send-to-discord.ts
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-
       - name: 📝 Commit & Push Screenshot to Repo
         run: |
           git config --global user.name "EHS Bot"
