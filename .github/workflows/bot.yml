@@ -2,11 +2,11 @@ name: 📸 EHS Daily Report Automation
 
 on:
   schedule:
-    - cron: '0 13 * * *'  # Runs at 7 AM Pakistan Time (UTC+5)
+    - cron: '0 13 * * *' # 6:00 PM PKT
   workflow_dispatch:
 
 permissions:
-  contents: write  # 👈 Required to push changes to the repo
+  contents: write
 
 jobs:
   ehs-daily-screenshot:
@@ -27,18 +27,41 @@ jobs:
       - name: 🎭 Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: 🧪 Run Screenshot Test
+      - name: 🧪 Run Playwright Screenshot Test
         run: npx playwright test
         env:
           LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 
+      - name: 📤 Send Screenshot to Discord
+        run: npx ts-node scripts/send-to-discord.ts
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
       - name: 📝 Commit & Push Screenshot to Repo
         run: |
           git config --global user.name "EHS Bot"
           git config --global user.email "ehs-bot@ehs.edu.pk"
-
           git add screenshots/*.png
           git commit -m "📸 Add screenshot for $(date +'%Y-%m-%d %H:%M:%S')" || echo "⚠️ Nothing to commit"
           git push
-          
+
+      - name: 🕵️ Get Latest Screenshot Path
+        id: latest_ss
+        run: |
+          FILE=$(ls -t screenshots/*.png | head -n 1)
+          echo "LATEST_SS=$FILE" >> $GITHUB_ENV
+
+      - name: 📧 Send Screenshot via Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_SENDER }}
+          password: ${{ secrets.EMAIL_APP_PASSWORD }}
+          subject: "📸 EHS Daily Fee Report Screenshot"
+          to: ${{ secrets.EMAIL_RECEIVER }}
+          from: "EHS Bot <${{ secrets.EMAIL_SENDER }}>"
+          body: "Attached is today's latest EHS screenshot."
+          secure: true
+          attachments: ${{ env.LATEST_SS }}
