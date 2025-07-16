@@ -1,12 +1,12 @@
-name: EHS Daily Screenshot Bot
+name: EHS Automation Workflow
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 2 AM UTC = 7 AM Pakistan Time
-  workflow_dispatch:      # Manual trigger support
+    - cron: '0 2 * * *'  # 7 AM Pakistan Time
+  workflow_dispatch:
 
 jobs:
-  run-bot:
+  run:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,12 +24,20 @@ jobs:
       - name: 🎭 Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: 🚀 Run Bot Script
-        run: npm run start
+      - name: 🧪 Run Screenshot Test
+        run: npx playwright test scripts/test-screenshot.spec.ts
         env:
           LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
+
+      - name: 📤 Send to Discord
+        run: npx ts-node scripts/send-to-discord.ts
+        env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: 📧 Send Email
+        run: npx ts-node scripts/send-email.ts
+        env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
