@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import FormData from 'form-data';
 
 const screenshotPath = fs.readFileSync('screenshot_path.txt', 'utf-8');
+
 const today = new Date().toISOString().split('T')[0];
 
 const webhook = process.env.DISCORD_WEBHOOK_URL;
