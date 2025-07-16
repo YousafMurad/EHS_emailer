@@ -1,20 +1,31 @@
-import { chromium } from 'playwright';
+import { test } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
+test('Take Daily Fee Report screenshot and save', async ({ page }) => {
+  const now = new Date();
 
-(async () => {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  // Format date as YYYY-MM-DD
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const todayDate = `${yyyy}-${mm}-${dd}`; // 👈 strictly this format
 
-  const today = new Date().toISOString().split('T')[0];
-  const screenshotPath = `screenshot-${today}.png`;
+  // Format timestamp for screenshot file name (no colons)
+  const timestamp = now.toISOString().replace(/[:]/g, '-').split('.')[0];
+  const screenshotDir = path.join('screenshots');
+  const screenshotName = `screenshot-${timestamp}.png`;
+  const screenshotPath = path.join(screenshotDir, screenshotName);
+
+  // Ensure screenshots folder exists
+  if (!fs.existsSync(screenshotDir)) {
+    fs.mkdirSync(screenshotDir);
+  }
 
   // Go to EHS login page
   await page.goto('https://fsd.ehs.edu.pk/');
 
-  // Fill login details from environment variables
+  // Fill login credentials
   await page.getByRole('textbox', { name: 'User Name' }).fill(process.env.LOGIN_USERNAME || '');
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.LOGIN_PASSWORD || '');
 
@@ -27,27 +38,23 @@ import path from 'path';
   await page.getByRole('link', { name: '   Reports' }).click();
   await page.getByRole('link', { name: 'Daily Fee Report' }).click();
 
-  // Set today's date
-  await page.locator('#MainContent_DateTextBox').fill(today);
+  // Fill today's date in format YYYY-MM-DD
+  await page.locator('#MainContent_DateTextBox').fill(todayDate);
   await page.getByRole('heading', { name: 'Select Date Generate Report' }).locator('a').click();
-
-  // Select user (e.g. Shahid Ikram)
   await page.locator('#MainContent_ddlUsers_chosen').getByText('Shahid Ikram').click();
 
-  // Click "Generate Report"
+  // Generate the report
   await page.getByRole('button', { name: 'Generate Report' }).click();
 
-  // ✅ Wait for report viewer or specific element to appear before screenshot
+  // Wait for the report viewer to appear
   await page.waitForSelector('#MainContent_ReportViewer1_ctl10_ctl03_ctl00', {
     timeout: 10000,
   });
 
-  // 📸 Take full page screenshot
+  // Take full-page screenshot
   await page.screenshot({ path: screenshotPath, fullPage: true });
 
-  // Save screenshot path for use in email/discord scripts
+  // Save screenshot path for other scripts
   fs.writeFileSync('screenshot_path.txt', screenshotPath);
-  console.log(`✅ Screenshot saved as ${screenshotPath}`);
-
-  await browser.close();
-})();
+  console.log(`✅ Screenshot saved at: ${screenshotPath}`);
+});
