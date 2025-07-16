@@ -33,18 +33,6 @@ jobs:
           LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 
-      - name: 📤 Send Screenshot to Discord
-        run: npx ts-node scripts/send-to-discord.ts
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-      - name: 📧 Send Screenshot by Email
-        run: npx ts-node scripts/send-email.ts
-        env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-
       - name: 📝 Commit & Push Screenshot to Repo
         run: |
           git config --global user.name "EHS Bot"
@@ -53,3 +41,10 @@ jobs:
           git add screenshots/*.png
           git commit -m "📸 Add screenshot for $(date +'%Y-%m-%d %H:%M:%S')" || echo "⚠️ Nothing to commit"
           git push
+          
+      - name: 📧 Send Screenshot by Email
+        run: npx ts-node scripts/send-email.ts
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
