@@ -2,7 +2,7 @@ name: 📸 EHS Daily Report Automation
 
 on:
   schedule:
-    - cron: '0 13 * * *' # 6:00 PM PKT
+    - cron: '50 16 * * *' # 6:00 PM PKT
   workflow_dispatch:
 
 permissions:
