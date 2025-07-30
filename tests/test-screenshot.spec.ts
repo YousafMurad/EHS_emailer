@@ -9,8 +9,9 @@ test('Take screenshot of Daily Fee Report', async ({ page }) => {
   const screenshotPath = path.join('screenshots', screenshotName);
 
   await page.goto('https://fsd.ehs.edu.pk/');
-  await page.getByRole('textbox', { name: 'User Name' }).fill('madam');
-  await page.getByRole('textbox', { name: 'Password' }).fill('madam123@');
+await page.getByRole('textbox', { name: 'User Name' }).fill(process.env.LOGIN_USERNAME || '');
+await page.getByRole('textbox', { name: 'Password' }).fill(process.env.LOGIN_PASSWORD || '');
+
   await page.locator('#MainContent_ddlSession').selectOption('12');
   await page.getByRole('button', { name: 'Login' }).click();
   await page.waitForLoadState('networkidle');
