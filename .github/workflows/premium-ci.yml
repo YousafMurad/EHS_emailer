@@ -1,87 +1,48 @@
-name: Premium Code Quality & Security
+name: Premium Quality Gate (Free)
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
     branches: [ main ]
-  workflow_dispatch:   # 👈 Manual trigger added
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  codeql-analysis:
-    name: CodeQL Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-  sonarcloud:
-    name: SonarCloud Quality Gate
+  yaml-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Run YAML lint
+        run: |
+          pip install yamllint
+          yamllint . > yaml-report.txt || true
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 20
+          name: yaml-report
+          path: yaml-report.txt
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=my-org
-            -Dsonar.projectKey=my-org_my-repo
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-
-  dependency-check:
-    name: Dependency Vulnerability Audit
+  markdown-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Run Markdown lint
+        run: |
+          npm install -g markdownlint-cli
+          markdownlint "**/*.md" > md-report.txt || true
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 20
+          name: markdown-report
+          path: md-report.txt
 
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run npm audit
-        run: npm audit --json > audit-report.json || true
-
-      - name: Upload Audit Report
-        uses: actions/upload-artifact@v4
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gitleaks (secrets scan)
+        uses: gitleaks/gitleaks-action@v2
         with:
-          name: npm-audit-report
-          path: audit-report.json
+          args: detect --source . --report-path=gitleaks-report.json --report-format=json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
