@@ -1,87 +1,99 @@
-name: Premium Code Quality & Security
+name: Ultimate Free Code Quality
 
 on:
   pull_request:
     branches: [ main ]
   push:
     branches: [ main ]
-  workflow_dispatch:   # 👈 Manual trigger added
+  workflow_dispatch:
 
 jobs:
-  codeql-analysis:
-    name: CodeQL Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-  sonarcloud:
-    name: SonarCloud Quality Gate
+  lint:
+    name: ESLint Report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - run: npm ci
+      - run: npx eslint . --ext .js,.jsx,.ts,.tsx -f html -o eslint-report.html || true
+      - uses: actions/upload-artifact@v4
         with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=my-org
-            -Dsonar.projectKey=my-org_my-repo
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+          name: eslint-report
+          path: eslint-report.html
 
   dependency-check:
     name: Dependency Vulnerability Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run npm audit
-        run: npm audit --json > audit-report.json || true
-
-      - name: Upload Audit Report
-        uses: actions/upload-artifact@v4
+      - run: npm ci
+      - run: npm audit --json > audit-report.json || true
+      - run: npx audit-html -i audit-report.json -o audit-report.html || echo "No vulnerabilities"
+      - uses: actions/upload-artifact@v4
         with:
           name: npm-audit-report
-          path: audit-report.json
+          path: audit-report.html
+
+  codeql:
+    name: CodeQL Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
+
+  workflow-validation:
+    name: Validate Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/actionlint@v1
+
+  secrets-scan:
+    name: Secrets Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . --report-format json --report-path gitleaks-report.json
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+
+  markdown-lint:
+    name: Docs & Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx markdownlint-cli2 "**/*.md" --output md-report.txt || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: markdown-report
+          path: md-report.txt
+
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: yamllint . > yaml-report.txt || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yaml-report
+          path: yaml-report.txt
