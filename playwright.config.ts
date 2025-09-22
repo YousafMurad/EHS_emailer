@@ -10,4 +10,5 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
   },
   reporter: [['list']],
+  
 });
